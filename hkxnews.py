@@ -11,16 +11,40 @@ headers = {
 for i in SEHK:
     
     url = f"https://www1.hkexnews.hk/search/titleSearchServlet.do?sortDir=0&sortByOptions=DateTime&category=0&market=SEHK&stockId={i['stockId']}&documentType=-1&fromDate=19990401&toDate=20230926&title=&searchType=0&t1code=-2&t2Gcode=-2&t2code=-2&rowRange=200&lang={i['lang']}"
+    print("="*10, "Start", i['stockName'], "="*10)
+    
+    # 找出現有多少條記錄 localCnt
     try:
-        print("="*10, "Start", i['stockName'], "="*10)
+        with open(f"data/{i['stockName']}.json", "r", encoding='utf-8') as file:
+            localCnt = json.load(file)
+            localCnt = localCnt['recordCnt']
+    except Exception as e:
+        print(e)
+    
+    try:
         print(">"*3, "Get hkxnews")
         response = requests.get(url=url, headers=headers)
-        content = response.text.replace("\\\\u003cbr/\\\\u003e\\", "")
+        # 清洗數據
+        content = response.text
+        content = content.replace("\\\\u003cbr/\\\\u003e", "")
+        content = content.replace("\\\\n", " ")
+        content = content.replace("\\\\u0026#x2f;", "/")
+        # content = content.replace("0026#x2f;", "/")
+            
+        # HKEXNEWS 上多少條記錄 recordCnt
+        content = json.loads(content)
+        recordCnt = content['recordCnt']
+
+        # 對比有沒有新的記錄,有即更新
+        if recordCnt != localCnt:
+            print(">"*3, i['stockName'], f"發現 {recordCnt - localCnt} 條更新")
+            with open(f"data/{i['stockName']}.json", "w", encoding='utf-8') as file:
+                json.dump(content, file, indent=4, ensure_ascii=False)
+            
         
-        print(">"*3, f"保存: {i['stockName']}.json")
-        with open(f"{i['stockName']}.json", "w", encoding="utf-8") as f:
-            json.dump(content, f, indent=4, ensure_ascii=False)
-        
+        else:
+            print(">"*3, i['stockName'], "沒有發現更新")
+
         print(">"*3, i['stockName'], "Done")
     except Exception as e:
         print(e)
