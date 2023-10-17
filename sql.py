@@ -34,6 +34,12 @@ class SQL():
         query = f"""INSERT OR IGNORE INTO '{self.database}' ({keys}) VALUES ({placeholders})"""
         self.cursor.execute(query, data)
         self.conn.commit()
+    
+    def active(self):
+        """active for all records"""
+        query = f"UPDATE '{self.database}' SET ACTIVE = '1'"
+        print(query)
+        self.cursor.execute(query)
 
     def close(self):
         self.cursor.close()
@@ -41,8 +47,9 @@ class SQL():
 
 
 if __name__=="__main__":
-    sql = SQL("test")
+    sql = SQL("PER ENERGY")
     sql.create()
-    query = {'FILE_INFO': '436KB', 'NEWS_ID': '10901938', 'SHORT_TEXT': 'Announcements and Notices - [Major Transaction]', 'TOTAL_COUNT': '173', 'DOD_WEB_PATH': '', 'STOCK_NAME': 'PER ENERGY', 'TITLE': "MAJOR TRANSACTION WRITTEN SHAREHOLDER'S APPROVAL", 'FILE_TYPE': 'PDF', 'DATE_TIME': '19/09/2023 17:53', 'LONG_TEXT': 'Announcements and Notices - [Major Transaction]', 'STOCK_CODE': '02798', 'FILE_LINK': '/listedco/listconews/sehk/2023/0919/2023091900699.pdf'}
-    sql.dict_insert(query)
+    # query = {'FILE_INFO': '436KB', 'NEWS_ID': '10901938', 'SHORT_TEXT': 'Announcements and Notices - [Major Transaction]', 'TOTAL_COUNT': '173', 'DOD_WEB_PATH': '', 'STOCK_NAME': 'PER ENERGY', 'TITLE': "MAJOR TRANSACTION WRITTEN SHAREHOLDER'S APPROVAL", 'FILE_TYPE': 'PDF', 'DATE_TIME': '19/09/2023 17:53', 'LONG_TEXT': 'Announcements and Notices - [Major Transaction]', 'STOCK_CODE': '02798', 'FILE_LINK': '/listedco/listconews/sehk/2023/0919/2023091900699.pdf'}
+    # sql.dict_insert(query)
+    sql.active()
     sql.close()

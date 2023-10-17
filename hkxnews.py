@@ -6,14 +6,17 @@ import json
 from sql import SQL
 from gmail import Gmail
 from gmail import createMessage
+import datetime
 
 
 # 全區變量
 headers = {
     'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36 Edg/117.0.2045.41"
-}
+        }
 # Gmail smtp
 gmail = Gmail(username="hkcto.com@gmail.com", secret="qtjdbtvgysljmpup")
+
+today = datetime.datetime.today().strftime("%Y%m%d")
 
 
 for i in SEHK:
@@ -22,14 +25,16 @@ for i in SEHK:
     database = f"{i['stockName']}"
     sql = SQL(database)
     print("////////////////////////////////////////")
-    url = f"https://www1.hkexnews.hk/search/titleSearchServlet.do?sortDir=0&sortByOptions=DateTime&category=0&market=SEHK&stockId={i['stockId']}&documentType=-1&fromDate=19990401&toDate=20230926&title=&searchType=0&t1code=-2&t2Gcode=-2&t2code=-2&rowRange=200&lang={i['lang']}"
+    url = f"https://www1.hkexnews.hk/search/titleSearchServlet.do?sortDir=0&sortByOptions=DateTime&category=0&market=SEHK&stockId={i['stockId']}&documentType=-1&fromDate=19990401&toDate={today}&title=&searchType=0&t1code=-2&t2Gcode=-2&t2code=-2&rowRange=1000&lang={i['lang']}"
     print("="*10, "Start", i['stockName'], "="*10)
+    # print(url)
     
     # 找出現有多少條記錄 localCnt
     try:
         with open(f"data/{i['stockName']}.json", "r", encoding='utf-8') as file:
             localCnt = json.load(file)
             localCnt = localCnt['recordCnt']
+            print("Local Total Records Found:", localCnt)
         
         sql.create()
     
@@ -37,7 +42,7 @@ for i in SEHK:
         print(e)
     
     try:
-        print(">"*3, "Get hkxnews")
+        print(">"*3, "Start Get hkxnews")
         response = requests.get(url=url, headers=headers)
         # 清洗數據
         content = response.text
@@ -49,6 +54,8 @@ for i in SEHK:
         # HKEXNEWS 上多少條記錄 recordCnt
         content = json.loads(content)
         recordCnt = content['recordCnt']
+        # print(content)
+        # print("HKEXNEWS Total Records Found", recordCnt)
 
         # 對比有沒有新的記錄,有,即更新
         if recordCnt != localCnt:
